@@ -1,0 +1,88 @@
+name: CI
+
+# Runs the test suite on every push/PR, and builds + pushes a Docker image to
+# GHCR on pushes to the default branch and on version tags.
+#
+# Image: ghcr.io/<owner>/<repo> (lowercased by docker/metadata-action).
+# Version tags come from annotated/lightweight git tags matching v*.*.* —
+# e.g. tagging commit `v1.4.0` publishes 1.4.0, 1.4 and 1. Default-branch
+# pushes publish `latest`. Every build is also tagged `sha-<short>`.
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*.*.*"]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Typecheck & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.14"
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Test
+        run: bun test
+
+  docker:
+    name: Build & push image
+    needs: test
+    runs-on: ubuntu-latest
+    # Don't publish images for pull requests — only default-branch and tags.
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Derive image tags & labels
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            # Literal git tag name (handles CalVer like v202606.02.0, which is
+            # not valid semver, so the type=semver patterns below skip it).
+            type=ref,event=tag
+            # Semver rollups for valid releases (e.g. v1.4.0 -> 1.4.0, 1.4, 1).
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=short
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
