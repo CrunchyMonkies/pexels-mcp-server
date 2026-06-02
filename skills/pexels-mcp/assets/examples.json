@@ -1,0 +1,74 @@
+{
+  "description": "Example tool calls for the pexels-mcp skill. Each entry is { tool, arguments }.",
+  "examples": [
+    {
+      "name": "search-landscape-photos",
+      "tool": "searchPhotos",
+      "arguments": { "query": "mountain lake at sunrise", "orientation": "landscape", "perPage": 10 }
+    },
+    {
+      "name": "photo-metadata",
+      "tool": "getPhoto",
+      "arguments": { "id": 2014422 }
+    },
+    {
+      "name": "resize-and-convert-webp",
+      "tool": "getPhoto",
+      "arguments": {
+        "id": 2014422,
+        "sourceSize": "large",
+        "pipeline": [
+          { "op": "resize", "width": 1200, "fit": "inside", "withoutEnlargement": true },
+          { "op": "format", "type": "webp", "quality": 82 }
+        ]
+      }
+    },
+    {
+      "name": "crop-square-thumbnail",
+      "tool": "getPhoto",
+      "arguments": {
+        "id": 2014422,
+        "pipeline": [
+          { "op": "resize", "width": 800 },
+          { "op": "cut", "left": 200, "top": 100, "width": 400, "height": 400 },
+          { "op": "format", "type": "jpeg", "quality": 85 }
+        ]
+      }
+    },
+    {
+      "name": "greyscale-rotated-png",
+      "tool": "getPhoto",
+      "arguments": {
+        "id": 2014422,
+        "pipeline": [
+          { "op": "rotate", "degrees": 90 },
+          { "op": "grayscale" },
+          { "op": "modulate", "brightness": 1.1 },
+          { "op": "format", "type": "png" }
+        ]
+      }
+    },
+    {
+      "name": "lqip-placeholder",
+      "tool": "getPhoto",
+      "arguments": { "id": 2014422, "pipeline": [ { "op": "placeholder" } ] }
+    },
+    {
+      "name": "transform-arbitrary-url-to-disk-stdio-only",
+      "tool": "downloadPhoto",
+      "arguments": {
+        "id": 2014422,
+        "pipeline": [
+          { "op": "resize", "width": 600 },
+          { "op": "format", "type": "webp", "quality": 80 }
+        ],
+        "outputPath": "/tmp/pexels_2014422.webp"
+      }
+    },
+    {
+      "name": "download-video-hd-stdio-only",
+      "tool": "downloadVideo",
+      "arguments": { "id": 3571264, "quality": "hd", "outputPath": "/tmp/pexels_3571264.mp4" }
+    }
+  ]
+}

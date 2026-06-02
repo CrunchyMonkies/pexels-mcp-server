@@ -1,0 +1,14 @@
+node_modules
+.git
+.gitignore
+.omc
+.roo
+.cursor
+.vscode
+.idea
+dist
+test
+docs
+skills
+*.log
+*.md
