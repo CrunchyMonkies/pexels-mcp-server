@@ -10,7 +10,7 @@ startCommand:
         description: Pexels API key for authenticating requests
   commandFunction: |
     (config) => ({
-      command: "node",
-      args: ["dist/main.js"],
+      command: "bun",
+      args: ["src/main.ts"],
       env: { PEXELS_API_KEY: config.pexelsApiKey }
     })
