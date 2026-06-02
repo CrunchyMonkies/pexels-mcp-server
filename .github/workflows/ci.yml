@@ -67,6 +67,10 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
+            # Literal git tag name (handles CalVer like v202606.02.0, which is
+            # not valid semver, so the type=semver patterns below skip it).
+            type=ref,event=tag
+            # Semver rollups for valid releases (e.g. v1.4.0 -> 1.4.0, 1.4, 1).
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}
